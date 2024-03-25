@@ -197,12 +197,12 @@ class Agent():
 			lg.logger_mcts.info('NEW LOSS %s', fit.history)
 
 			self.train_overall_loss.append(round(fit.history['loss'][config.EPOCHS - 1],4))
-			self.train_value_loss.append(round(fit.history['value_head_loss'][config.EPOCHS - 1],4)) 
-			self.train_policy_loss.append(round(fit.history['policy_head_loss'][config.EPOCHS - 1],4)) 
+			# self.train_value_loss.append(round(fit.history['value_head_loss'][config.EPOCHS - 1],4)) 
+			# self.train_policy_loss.append(round(fit.history['policy_head_loss'][config.EPOCHS - 1],4)) 
 
 		plt.plot(self.train_overall_loss, 'k')
-		plt.plot(self.train_value_loss, 'k:')
-		plt.plot(self.train_policy_loss, 'k--')
+		# plt.plot(self.train_value_loss, 'k:')
+		# plt.plot(self.train_policy_loss, 'k--')
 
 		plt.legend(['train_overall_loss', 'train_value_loss', 'train_policy_loss'], loc='lower left')
 
