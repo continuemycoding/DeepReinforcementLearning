@@ -1,6 +1,20 @@
 # -*- coding: utf-8 -*-
 # %matplotlib inline
 
+import builtins
+import datetime
+
+original_print = builtins.print
+
+def custom_print(*args, **kwargs):
+    current_time = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
+    original_print(current_time, *args, **kwargs)
+
+builtins.print = custom_print
+
+import sys
+print(sys.version)
+
 import numpy as np
 np.set_printoptions(suppress=True)
 
