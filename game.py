@@ -47,10 +47,11 @@ class Game:
 
 
 class GameState():
-	def __init__(self, board, playerTurn):
+	def __init__(self, board, playerTurn, lastAction=None):
 		self.board = board
 		self.pieces = {'1':'X', '0': '-', '-1':'O'}
 		self.playerTurn = playerTurn
+		self.lastAction = lastAction
 		self.binary = self._binary()
 		self.id = self._convertStateToId()
 		self.allowedActions = self._allowedActions()
@@ -84,30 +85,35 @@ class GameState():
 		return value != 0  # 如果value不为0，表示有玩家赢了游戏
 
 	def _getValue(self):
+		if self.lastAction is None:
+			return (0, 0, 0)  # 如果还没有动作发生，则游戏状态不改变
+
 		if np.all(self.board != 0):
 			return (0, 0, 0)  # 平局
 
-		board = self.board.reshape(15, 15)  # 将一维棋盘数组转换为二维形式以便处理
+		x, y = divmod(self.lastAction, 15)  # 将一维位置转换为二维坐标
 
 		# 方向向量: 水平, 垂直, 主对角线, 副对角线
 		directions = [(0, 1), (1, 0), (1, 1), (-1, 1)]
 
-		for x in range(15):
-			for y in range(15):
-				if board[x, y] == 0:
-					continue  # 空格不检查
-
-				player = board[x, y]
-				for dx, dy in directions:
-					count = 1  # 当前棋子已计算在内
-					for step in range(1, 5):  # 检查之后的四个棋子
-						nx, ny = x + dx * step, y + dy * step
-						if 0 <= nx < 15 and 0 <= ny < 15 and board[nx, ny] == player:
-							count += 1
-						else:
-							break
-					if count == 5:
-						return (1, 1, 0) if player == self.playerTurn else (-1, 0, 1)
+		for dx, dy in directions:
+			count = 1  # 当前棋子已计算在内
+			# 检查当前棋子一侧
+			for step in range(1, 5):  # 检查之后的四个棋子
+				nx, ny = x + dx * step, y + dy * step
+				if 0 <= nx < 15 and 0 <= ny < 15 and self.board[nx * 15 + ny] == self.playerTurn:
+					count += 1
+				else:
+					break
+			# 检查当前棋子另一侧
+			for step in range(1, 5):  # 检查之前的四个棋子
+				nx, ny = x - dx * step, y - dy * step
+				if 0 <= nx < 15 and 0 <= ny < 15 and self.board[nx * 15 + ny] == self.playerTurn:
+					count += 1
+				else:
+					break
+			if count >= 5:  # 如果找到了五子连线
+				return (1, 1, 0) if self.playerTurn == 1 else (-1, 0, 1)
 
 		return (0, 0, 0)  # 游戏未结束
 
@@ -123,7 +129,7 @@ class GameState():
 		newBoard = np.array(self.board)
 		newBoard[action]=self.playerTurn
 		
-		newState = GameState(newBoard, -self.playerTurn)
+		newState = GameState(newBoard, -self.playerTurn, lastAction=action)
 
 		value = 0
 		done = 0
